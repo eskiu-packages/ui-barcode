@@ -14,7 +14,7 @@ export function setup(ui) {
       video.muted = true;
       video.playsInline = true;
       Object.assign(video.style, {width: '100%', height: '100%', objectFit: 'cover', background: '#000'});
-      let stream = null, timer = 0, detector = null, scanning = true, formats = 'all';
+      let stream = null, timer = 0, detector = null, scanning = true, formats = 'all', disposed = false;
       let last = '', lastTime = 0;
       const makeDetector = () => {
         const wanted = formats === 'all' ? Object.values(names) : formats.split(',').map(f => names[f]).filter(Boolean);
@@ -36,17 +36,31 @@ export function setup(ui) {
         setTimeout(() => emit('unavailable', ''), 0);
       } else {
         makeDetector();
-        navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}})
-          .then(s => { stream = s; video.srcObject = s; timer = setInterval(scan, 200); })
-          .catch(error => emit(error && error.name === 'NotAllowedError' ? 'denied' : 'unavailable', ''));
+        // A browser can have BarcodeDetector with no detector behind it (no formats), or refuse
+        // the formats asked for: say unavailable then, rather than show a camera that reads
+        // nothing.
+        const known = typeof window.BarcodeDetector.getSupportedFormats === 'function'
+          ? window.BarcodeDetector.getSupportedFormats() : Promise.resolve(Object.values(names));
+        known.catch(() => []).then(list => {
+          if (disposed) return;
+          if (!detector || !list || list.length === 0) { emit('unavailable', ''); return; }
+          return navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}).then(s => {
+            if (disposed) { s.getTracks().forEach(track => track.stop()); return; }
+            stream = s; video.srcObject = s; timer = setInterval(scan, 200);
+          }, error => emit(error && error.name === 'NotAllowedError' ? 'denied' : 'unavailable', ''));
+        });
       }
       return {
         element: video,
         set(name, value) {
           if (name === 'scanning') scanning = value !== '0';
-          else if (name === 'formats') { formats = value || 'all'; if (detector) makeDetector(); }
+          else if (name === 'formats') {
+            formats = value || 'all';
+            if (detector) { makeDetector(); if (!detector) emit('unavailable', ''); }
+          }
         },
         dispose() {
+          disposed = true;
           clearInterval(timer);
           if (stream) stream.getTracks().forEach(track => track.stop());
         },
