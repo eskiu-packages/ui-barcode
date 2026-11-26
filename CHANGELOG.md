@@ -4,6 +4,19 @@ All notable changes to barcode are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- Web: a browser whose `BarcodeDetector` reads no formats, or refuses the formats asked for,
+  now reports `ScanUnavailable` from the mounted scanner; before, it showed the camera and
+  read nothing.
+
+### Changed
+
+- The README says which platforms read codes, what happens without `BarcodeDetector` (and in
+  the desktops' webview builds), and that the package is in Preview, tested against stand-ins.
+
 ## [0.1.4] - 2026-11-21
 
 ### Added
