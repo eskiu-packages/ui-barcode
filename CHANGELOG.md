@@ -4,7 +4,11 @@ All notable changes to barcode are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.1.5] - 2026-11-26
+
+### Changed
+
+- Depends on ui 0.8.0.
 
 ### Fixed
 
@@ -17,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The README says which platforms read codes, what happens without `BarcodeDetector` (and in
   the desktops' webview builds), and that the package is in Preview, tested against stand-ins.
 
-## [0.1.4] - 2026-11-21
+## [0.1.4]
 
 ### Added
 
